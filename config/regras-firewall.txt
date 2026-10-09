@@ -1,0 +1,27 @@
+REGRAS DE FIREWALL — pfSense
+Política: deny-by-default (as interfaces OPT nascem a bloquear tudo)
+
+Alias:
+  RedesPrivadas (Network) = 10.10.10.0/24, 10.10.20.0/24, 10.10.30.0/24
+
+--------------------------------------------------
+Segmento LABORATÓRIO (OPT2 — 10.10.30.0/24)
+Regras por ordem (avaliadas de cima para baixo):
+  1. PASS   OPT2 net -> 10.10.30.1            # permitir DNS/gateway
+  2. PASS   OPT2 net -> 10.10.30.1 : 53 (UDP) # permitir DNS ao gateway
+  3. BLOCK  OPT2 net -> RedesPrivadas         # bloquear outras redes internas
+  4. PASS   OPT2 net -> any                   # permitir internet
+
+--------------------------------------------------
+Segmento FAMÍLIA (OPT1 — 10.10.20.0/24)
+  1. BLOCK  OPT1 net -> RedesPrivadas         # bloquear outras redes internas
+  2. PASS   OPT1 net -> any                   # permitir internet
+
+--------------------------------------------------
+Segmento GESTÃO (LAN — 10.10.10.0/24)
+  Regra "permitir tudo" por omissão (rede de administração)
+
+--------------------------------------------------
+Resultado: cada segmento tem internet, mas o Laboratório e a Família
+não alcançam as outras redes internas. O bloqueio é lido ANTES da
+permissão de internet, por isso a segmentação é seletiva.
